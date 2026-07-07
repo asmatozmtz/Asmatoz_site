@@ -13,9 +13,9 @@
     "Quinta": "#8f5fb0",
     "Sexta": "#c1584f",
     "Todos os dias": "#123c26",
-    "": "#b7c4ba"
+    "": "#d9d9d9"
   };
-  var DAY_ORDER = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Todos os dias", ""];
+  var DAY_ORDER = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", ""];
   var DAY_LABELS = {
     "Segunda": "Segunda-feira",
     "Terça": "Terça-feira",
@@ -23,7 +23,7 @@
     "Quinta": "Quinta-feira",
     "Sexta": "Sexta-feira",
     "Todos os dias": "Todos os dias",
-    "": "Sem informação"
+    "": "Sem coleta seletiva"
   };
 
   function dayColor(dia) {
@@ -98,18 +98,63 @@
     });
   }
 
-  /* ---------- Painel lateral: mapas de fundo ---------- */
-  var basemapsWrap = document.getElementById("geo-basemaps");
-  Object.keys(basemaps).forEach(function (id) {
-    var b = basemaps[id];
-    var btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "geo-basemap-btn" + (id === currentBasemap ? " active" : "");
-    btn.dataset.basemap = id;
-    btn.innerHTML = '<span class="geo-bm-icon" style="background:' + b.color + '"></span>' + b.label;
-    btn.addEventListener("click", function () { setBasemap(id); });
-    basemapsWrap.appendChild(btn);
+  /* ---------- Controle flutuante: mapas de fundo (ao lado do zoom in/out) ---------- */
+  var BasemapControl = L.Control.extend({
+    options: { position: "topright" },
+    onAdd: function () {
+      var wrap = L.DomUtil.create("div", "leaflet-bar geo-basemap-control");
+
+      var toggle = L.DomUtil.create("a", "geo-basemap-toggle", wrap);
+      toggle.href = "#";
+      toggle.title = "Mapa de fundo";
+      toggle.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3l9 5-9 5-9-5 9-5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3 13l9 5 9-5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+
+      var panel = L.DomUtil.create("div", "geo-basemap-panel", wrap);
+      panel.hidden = true;
+
+      Object.keys(basemaps).forEach(function (id) {
+        var b = basemaps[id];
+        var item = L.DomUtil.create("button", "geo-basemap-btn" + (id === currentBasemap ? " active" : ""), panel);
+        item.type = "button";
+        item.dataset.basemap = id;
+        item.innerHTML = '<span class="geo-bm-icon" style="background:' + b.color + '"></span>' + b.label;
+        L.DomEvent.on(item, "click", function (e) {
+          L.DomEvent.stop(e);
+          setBasemap(id);
+          panel.hidden = true;
+        });
+      });
+
+      L.DomEvent.on(toggle, "click", function (e) {
+        L.DomEvent.stop(e);
+        panel.hidden = !panel.hidden;
+      });
+
+      L.DomEvent.disableClickPropagation(wrap);
+      L.DomEvent.disableScrollPropagation(wrap);
+      return wrap;
+    }
   });
+  map.addControl(new BasemapControl());
+
+  /* ---------- Controle flutuante: localização do usuário (ao lado do zoom in/out) ---------- */
+  var LocateControl = L.Control.extend({
+    options: { position: "topright" },
+    onAdd: function () {
+      var wrap = L.DomUtil.create("div", "leaflet-bar geo-locate-control");
+      var btn = L.DomUtil.create("a", "", wrap);
+      btn.href = "#";
+      btn.title = "Ver minha localização";
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+      L.DomEvent.on(btn, "click", function (e) {
+        L.DomEvent.stop(e);
+        map.locate({ setView: true, maxZoom: 16 });
+      });
+      L.DomEvent.disableClickPropagation(wrap);
+      return wrap;
+    }
+  });
+  map.addControl(new LocateControl());
 
   /* ---------- Popups auxiliares ---------- */
   function popupRow(k, v) {
@@ -139,8 +184,7 @@
   function onEachBairro(feature, layer) {
     var p = feature.properties;
     var html = '<div class="geo-popup"><h4>' + (p.bairro || "Bairro") + "</h4><table>";
-    html += popupRow("Coleta seletiva", tagHtml(DAY_LABELS[p.dia_seletiva] || "—", dayColor(p.dia_seletiva)));
-    if (p.dia_seletiva2) html += popupRow("2ª coleta seletiva", DAY_LABELS[p.dia_seletiva2] || p.dia_seletiva2);
+    html += popupRow("Coleta seletiva", tagHtml(DAY_LABELS[p.dia_seletiva], dayColor(p.dia_seletiva)));
     if (p.dia_convencional) html += popupRow("Coleta convencional", p.dia_convencional);
     html += "</table></div>";
     layer.bindPopup(html);
@@ -398,10 +442,7 @@
     coordsEl.textContent = e.latlng.lat.toFixed(5) + ", " + e.latlng.lng.toFixed(5);
   });
 
-  /* ---------- Localização do usuário ---------- */
-  document.getElementById("geo-locate-btn").addEventListener("click", function () {
-    map.locate({ setView: true, maxZoom: 16 });
-  });
+  /* ---------- Localização do usuário (feedback dos eventos do controle acima) ---------- */
   map.on("locationfound", function (e) {
     L.marker(e.latlng).addTo(map).bindPopup("Você está aqui (aprox.)").openPopup();
   });

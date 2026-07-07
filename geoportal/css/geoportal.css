@@ -136,12 +136,53 @@ body.geoportal-body {
   margin: 6px 0 0;
 }
 
-/* Basemaps */
-.geo-basemaps {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+/* Controle flutuante de mapa de fundo (ao lado do zoom in/out) */
+.geo-basemap-control {
+  position: relative;
 }
+
+.geo-basemap-toggle {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  color: var(--green-900);
+  text-decoration: none;
+}
+
+.geo-basemap-toggle:hover { background: var(--green-100); }
+
+.geo-basemap-panel {
+  position: absolute;
+  top: 0;
+  right: 36px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  padding: 8px;
+  display: grid;
+  grid-template-columns: repeat(3, 74px);
+  gap: 6px;
+  width: max-content;
+}
+
+.geo-basemap-panel[hidden] { display: none; }
+
+.geo-locate-control a {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  color: var(--green-700);
+  text-decoration: none;
+}
+
+.geo-locate-control a:hover { background: var(--green-100); }
 
 .geo-basemap-btn {
   border: 1.5px solid var(--border);
@@ -351,27 +392,6 @@ body.geoportal-body {
   white-space: nowrap;
 }
 
-/* Locate control */
-.geo-locate-btn-float {
-  position: absolute;
-  top: 108px;
-  right: 10px;
-  z-index: 900;
-  background: #fff;
-  width: 34px;
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  border: 2px solid rgba(0,0,0,0.15);
-  cursor: pointer;
-  color: var(--green-700);
-  box-shadow: var(--shadow);
-}
-
-.geo-locate-btn-float:hover { background: var(--green-100); }
-
 /* Sidebar close button (mobile) */
 .geo-sidebar-close-btn {
   display: none;
@@ -466,5 +486,5 @@ body.geoportal-body {
   .geo-sidebar.open { transform: translateX(0); }
   .geo-sidebar-toggle { display: flex; }
   .geo-sidebar-close-btn { display: block; }
-  .geo-basemaps { grid-template-columns: repeat(3, 1fr); }
+  .geo-basemap-panel { grid-template-columns: repeat(2, 74px); }
 }
