@@ -108,8 +108,13 @@ var RastreamentoASMATOZ = (function () {
       });
   }
 
+  function ehMapaLeaflet(obj) {
+    return !!obj && typeof obj.addLayer === "function" && typeof obj.setView === "function";
+  }
+
   function iniciar(mapaLeaflet) {
-    if (iniciado || !mapaLeaflet) return;
+    // Protecao: window.map pode ser a DIV #map, e nao o mapa Leaflet.
+    if (iniciado || !ehMapaLeaflet(mapaLeaflet)) return;
     iniciado = true;
     mapa = mapaLeaflet;
     ciclo();
@@ -136,7 +141,7 @@ var RastreamentoASMATOZ = (function () {
   if (window.L && L.Map && L.Map.addInitHook) {
     L.Map.addInitHook(function () {
       var m = this;
-      setTimeout(function () { iniciar(m); }, 1500);
+      setTimeout(function () { iniciar(m); }, 400);
     });
   }
 
@@ -145,7 +150,7 @@ var RastreamentoASMATOZ = (function () {
     if (iniciado) return;
     for (var k in window) {
       try {
-        if (window[k] instanceof L.Map) { iniciar(window[k]); return; }
+        if (ehMapaLeaflet(window[k]) && window[k] instanceof L.Map) { iniciar(window[k]); return; }
       } catch (e) { /* alguns acessos a window disparam erro; ignorar */ }
     }
     if ((tentativa || 0) < 20) {
