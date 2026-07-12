@@ -155,5 +155,14 @@
 <script src="rastreamento-caminhao.js"></script>
 
 <script src="js/geoportal.js"></script>
+
+<!-- Garante a inicializacao do rastreamento apos o mapa existir -->
+<script>
+  window.addEventListener("load", function () {
+    if (window.RastreamentoASMATOZ && window.map) {
+      RastreamentoASMATOZ.iniciar(window.map);
+    }
+  });
+</script>
 </body>
 </html>
